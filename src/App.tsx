@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import "./App.css";
 
 const black: Black = true;
@@ -28,12 +28,18 @@ const Square: React.VFC<{
   canPlace: boolean;
   onPutStone: () => void;
 }> = ({ square, canPlace, onPutStone }) => {
+  const handleClick = () => {
+    if (canPlace) {
+      onPutStone();
+    }
+  };
+
   return (
     <div
       className={`h-10 w-10 ${
         canPlace ? "bg-yellow-300" : "bg-green-700"
       } border  border-stone-800 flex justify-center items-center`}
-      onClick={onPutStone}
+      onClick={handleClick}
     >
       <div
         className={`rounded-full w-[80%] h-[80%] ${
@@ -83,20 +89,97 @@ const Board: React.VFC<{
   );
 };
 
+const vector = [
+  "up",
+  "rightUp",
+  "right",
+  "rightDown",
+  "down",
+  "leftDown",
+  "left",
+  "leftUp",
+] as const;
+type Vector = typeof vector[number];
+
+const getVector = (vec: Vector) => {
+  let vecLine, vecColumn;
+  switch (vec) {
+    case "up": {
+      [vecLine, vecColumn] = [-1, 0];
+      break;
+    }
+    case "rightUp": {
+      [vecLine, vecColumn] = [-1, 1];
+      break;
+    }
+    case "right": {
+      [vecLine, vecColumn] = [0, 1];
+      break;
+    }
+    case "rightDown": {
+      [vecLine, vecColumn] = [1, 1];
+      break;
+    }
+    case "down": {
+      [vecLine, vecColumn] = [1, 0];
+      break;
+    }
+    case "leftDown": {
+      [vecLine, vecColumn] = [1, -1];
+      break;
+    }
+    case "left": {
+      [vecLine, vecColumn] = [0, -1];
+      break;
+    }
+    case "leftUp": {
+      [vecLine, vecColumn] = [-1, -1];
+      break;
+    }
+  }
+  return { vecLine, vecColumn };
+};
+
 function App() {
   const [squares, setSquares] = useState<Square[][]>(initSquares);
   const [player, setPlayer] = useState<Player>(black);
 
-  const availableSquares = useMemo((): {
-    line: number;
-    column: number;
-  }[] => {
-    const canPlace = (
-      line: number,
-      column: number,
-      vecLine: number,
-      vecColumn: number
-    ) => {
+  const turnStones = (line: number, column: number, vec: Vector) => {
+    // ひっくり返すlineとcolumnを求める
+    let targets: { line: number; column: number }[] = [];
+    const { vecLine, vecColumn } = getVector(vec);
+
+    let tmpLine = line + vecLine;
+    let tmpColumn = column + vecColumn;
+    // 盤上に必ずplayerの石があることが前提
+    // あとでどうにかしたい
+    // ていうか全体的にコードがぐちゃぐちゃで泣きたくなってきた
+    while (squares[tmpLine][tmpColumn] === !player) {
+      targets.push({ line: tmpLine, column: tmpColumn });
+      tmpLine += vecLine;
+      tmpColumn += vecColumn;
+    }
+
+    setSquares((squares) => {
+      return squares.map((ss, line) => {
+        return ss.map((s, column) => {
+          if (targets.find((t) => t.line === line && t.column === column)) {
+            return !s;
+          }
+          return s;
+        });
+      });
+    });
+  };
+
+  const onReset = () => {
+    setSquares(initSquares);
+  };
+
+  const canPlace = useCallback(
+    (line: number, column: number, vec: Vector) => {
+      const { vecLine, vecColumn } = getVector(vec);
+
       if (!isOnBoard(line, column)) {
         return false;
       }
@@ -125,21 +208,22 @@ function App() {
         tmpColumn += vecColumn;
       }
       return false;
-    };
+    },
+    [squares, player]
+  );
 
+  const availableSquares = useMemo((): {
+    line: number;
+    column: number;
+  }[] => {
     return squares
       .map((ss, line) => {
         return ss
           .map((_, column) => {
             if (
-              canPlace(line, column, -1, +0) || // 上
-              canPlace(line, column, -1, +1) || // 右上
-              canPlace(line, column, +0, +1) || // 右
-              canPlace(line, column, +1, +1) || // 右下
-              canPlace(line, column, +1, +0) || // 下
-              canPlace(line, column, +1, -1) || // 左下
-              canPlace(line, column, +0, -1) || // 左
-              canPlace(line, column, -1, -1) // 左上
+              vector.some((vec) => {
+                return canPlace(line, column, vec);
+              })
             ) {
               return { line, column };
             }
@@ -148,7 +232,7 @@ function App() {
           .filter((o) => o.line !== -1);
       })
       .flat();
-  }, [squares, player]);
+  }, [squares, canPlace]);
 
   const changePlayer = () => {
     setPlayer((p) => !p);
@@ -168,6 +252,14 @@ function App() {
         return ss;
       });
     });
+
+    // ひっくり返す
+    vector.forEach((vec) => {
+      if (canPlace(line, column, vec)) {
+        turnStones(line, column, vec);
+      }
+    });
+
     changePlayer();
   };
 
@@ -179,7 +271,10 @@ function App() {
         availableSquares={availableSquares}
         onPutStone={handlePutStone}
       />
-      <button className="m-auto block font-bold text-lg text-stone-800 bg-emerald-400 hover:bg-emerald-500 active:bg-emerald-600 px-2 py-2 rounded-full w-[120px] mt-3">
+      <button
+        className="m-auto block font-bold text-lg text-stone-800 bg-emerald-400 hover:bg-emerald-500 active:bg-emerald-600 px-2 py-2 rounded-full w-[120px] mt-3"
+        onClick={onReset}
+      >
         リセット
       </button>
     </div>
