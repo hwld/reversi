@@ -11,10 +11,11 @@ export const Board: React.VFC<{
     <div className={`w-fit ${className}`}>
       {[...new Array(8)].map((_, line) => {
         return (
-          <div className="flex">
+          <div key={`${line}`} className="flex">
             {[...new Array(8)].map((_, column) => {
               return (
                 <Square
+                  key={`${line}-${column}`}
                   square={squares[line][column]}
                   canPlace={
                     availableSquares.find(
