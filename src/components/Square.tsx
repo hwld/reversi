@@ -1,4 +1,5 @@
-import { black, SquareData, white } from "../utils/game";
+import { SquareData } from "../utils/game";
+import { Stone } from "./Stone";
 
 export const Square: React.VFC<{
   square: SquareData;
@@ -18,15 +19,7 @@ export const Square: React.VFC<{
       } border  border-stone-800 flex justify-center items-center`}
       onClick={handleClick}
     >
-      <div
-        className={`rounded-full w-[80%] h-[80%] ${
-          square === white
-            ? "bg-stone-100"
-            : square === black
-            ? "bg-stone-800"
-            : ""
-        } `}
-      ></div>
+      <Stone className="w-[80%] h-[80%]" type={square} />
     </div>
   );
 };
