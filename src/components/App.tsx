@@ -23,6 +23,7 @@ function App() {
   useEffect(() => {}, []);
 
   const onReset = () => {
+    setIsEnd(false);
     setSquares(initSquares);
   };
 
@@ -77,39 +78,41 @@ function App() {
   }, [whiteCounts, blackCounts]);
 
   return (
-    <div className="h-screen overflow-hidden bg-stone-200">
-      <div className="flex items-center m-auto w-fit mt-10">
-        {isEnd ? (
-          <>
-            <p className="font-bold text-xl">Winner:</p>
-            {winOrLoseStatus !== null ? (
-              <Stone
-                className="ml-3 h-[30px] w-[30px]"
-                type={winOrLoseStatus}
-              />
-            ) : (
-              <p className="ml-3 font-bold text-xl h-[30px]">Draw</p>
-            )}
-          </>
-        ) : (
-          <>
-            <p className="font-bold text-xl">NextPlayer:</p>
-            <Stone className="ml-3 h-[30px] w-[30px]" type={player} />
-          </>
-        )}
+    <div className="h-screen  justify-center overflow-hidden bg-stone-300 ">
+      <div className="mt-32 h-fit">
+        <div className="m-auto flex w-fit items-center">
+          {isEnd ? (
+            <>
+              <p className="text-xl font-bold">Winner:</p>
+              {winOrLoseStatus !== null ? (
+                <Stone
+                  className="ml-3 h-[30px] w-[30px]"
+                  type={winOrLoseStatus}
+                />
+              ) : (
+                <p className="ml-3 h-[30px] text-xl font-bold">Draw</p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-xl font-bold">NextPlayer:</p>
+              <Stone className="ml-3 h-[30px] w-[30px]" type={player} />
+            </>
+          )}
+        </div>
+        <Board
+          className="m-auto mt-5"
+          squares={squares}
+          availableSquares={availableSquares}
+          onPutStone={handlePutStone}
+        />
+        <button
+          className="m-auto mt-3 block w-[100px]  border-2 border-stone-700 py-1 text-lg font-bold  text-stone-900 duration-200 hover:bg-yellow-300 active:bg-yellow-400"
+          onClick={onReset}
+        >
+          Reset
+        </button>
       </div>
-      <Board
-        className="m-auto mt-5"
-        squares={squares}
-        availableSquares={availableSquares}
-        onPutStone={handlePutStone}
-      />
-      <button
-        className="m-auto block font-bold text-lg text-stone-800 bg-emerald-400 hover:bg-emerald-500 active:bg-emerald-600 px-2 py-2 rounded-full w-[120px] mt-3"
-        onClick={onReset}
-      >
-        リセット
-      </button>
     </div>
   );
 }
