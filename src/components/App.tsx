@@ -1,43 +1,49 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  black,
+  BLACK,
+  changePlayer,
   getAvailablePlaces,
   getTurnedOver,
   initSquares,
   Player,
-  SquareData,
-  white,
+  reverse,
+  SquareState,
+  WHITE,
+  YOU,
 } from "../utils/game";
 import { Board } from "./Board";
+import { Button } from "./Button";
 import { Stone } from "./Stone";
 
 function App() {
-  const [squares, setSquares] = useState<SquareData[][]>(initSquares);
-  const [player, setPlayer] = useState<Player>(black);
+  const [squares, setSquares] = useState<SquareState[][]>(initSquares);
+  const [player, setPlayer] = useState<Player>(YOU);
   const [isEnd, setIsEnd] = useState(false);
   const [whiteCounts, setWhiteCounts] = useState(0);
   const [blackCounts, setBlackCounts] = useState(0);
 
-  const availableSquares = getAvailablePlaces(squares, player);
+  const availableSquares = getAvailablePlaces(squares, player.stone);
 
-  useEffect(() => {}, []);
-
-  const onReset = () => {
+  const handleReset = () => {
     setIsEnd(false);
     setSquares(initSquares);
   };
 
-  const changePlayer = () => {
-    setPlayer((p) => !p);
+  const change = () => {
+    setPlayer((p) => changePlayer(p));
   };
 
   const handlePutStone = (line: number, column: number) => {
-    const turned = getTurnedOver(squares, { line, column, player });
+    const turned = getTurnedOver(squares, {
+      line,
+      column,
+      stone: player.stone,
+    });
     const placed = turned.map((ss, index) => {
       if (index === line) {
         return ss.map((s, index2) => {
           if (index2 === column) {
-            return player;
+            return player.stone;
           }
           return s;
         });
@@ -48,30 +54,30 @@ function App() {
     setSquares(placed);
 
     setBlackCounts(
-      placed.reduce((p, c) => p + c.filter((s) => s === black).length, 0)
+      placed.reduce((p, c) => p + c.filter((s) => s === BLACK).length, 0)
     );
     setWhiteCounts(
-      placed.reduce((p, c) => p + c.filter((s) => s === white).length, 0)
+      placed.reduce((p, c) => p + c.filter((s) => s === WHITE).length, 0)
     );
 
     // 次のプレイヤーが置く場所がなければプレイヤーチェンジしない
-    if (getAvailablePlaces(placed, !player).length === 0) {
+    if (getAvailablePlaces(placed, reverse(player.stone)).length === 0) {
       // 今のプレイヤーも置く場所がなければゲーム終了
-      if (getAvailablePlaces(placed, player).length === 0) {
+      if (getAvailablePlaces(placed, player.stone).length === 0) {
         alert("ゲーム終了");
         setIsEnd(true);
         return;
       }
     } else {
-      changePlayer();
+      change();
     }
   };
 
   const winOrLoseStatus = useMemo(() => {
     if (whiteCounts > blackCounts) {
-      return white;
+      return WHITE;
     } else if (blackCounts > whiteCounts) {
-      return black;
+      return BLACK;
     } else {
       return null;
     }
@@ -96,7 +102,7 @@ function App() {
           ) : (
             <>
               <p className="text-xl font-bold">NextPlayer:</p>
-              <Stone className="ml-3 h-[30px] w-[30px]" type={player} />
+              <Stone className="ml-3 h-[30px] w-[30px]" type={player.stone} />
             </>
           )}
         </div>
@@ -106,12 +112,9 @@ function App() {
           availableSquares={availableSquares}
           onPutStone={handlePutStone}
         />
-        <button
-          className="m-auto mt-3 block w-[100px]  border-2 border-stone-700 py-1 text-lg font-bold  text-stone-900 duration-200 hover:bg-yellow-300 active:bg-yellow-400"
-          onClick={onReset}
-        >
+        <Button className="m-auto mt-3" onClick={handleReset}>
           Reset
-        </button>
+        </Button>
       </div>
     </div>
   );
