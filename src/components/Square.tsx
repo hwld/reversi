@@ -7,11 +7,23 @@ export const Square: React.VFC<{
   line: number;
   column: number;
   availableSquares: { line: number; column: number }[];
+  lastPlacedStone: { line: number; column: number };
   onSetStone: (line: number, column: number) => void;
-}> = ({ className, square, line, column, availableSquares, onSetStone }) => {
+}> = ({
+  className,
+  square,
+  line,
+  column,
+  availableSquares,
+  lastPlacedStone,
+  onSetStone,
+}) => {
   const canPlace = !!availableSquares.find(
     (o) => o.line === line && o.column === column
   );
+
+  const isLastPlacedStone =
+    lastPlacedStone.line === line && lastPlacedStone.column === column;
 
   const handleClick = () => {
     if (canPlace) {
@@ -21,15 +33,16 @@ export const Square: React.VFC<{
 
   return (
     <div
-      className={`flex h-10 
-        w-10 items-center justify-center border-t-2 border-l-2 border-stone-900 duration-75 
-        ${canPlace && "bg-yellow-300 hover:bg-yellow-400"}    
+      className={`flex h-12
+        w-12 items-center justify-center border-t-2 border-l-2 border-stone-900 duration-75 
+        ${canPlace && "bg-yellow-300 hover:bg-yellow-400"}  
+        ${isLastPlacedStone && "bg-blue-300"}  
         ${line === 0 && "border-t-0"} 
         ${column === 0 && "border-l-0"}  
         ${className}`}
       onClick={handleClick}
     >
-      <Stone className="h-[80%] w-[80%]" type={square} />
+      <Stone className={`h-[80%] w-[80%]`} type={square} />
     </div>
   );
 };

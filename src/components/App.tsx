@@ -7,7 +7,6 @@ import { Stone } from "./Stone";
 
 function App() {
   const { history, current, setStone, resetGame, changeCurrent } = useGame();
-  const { squares, availableSquares } = history[current];
 
   return (
     <div className="flex h-screen w-auto justify-center overflow-y-hidden  bg-stone-300">
@@ -15,9 +14,8 @@ function App() {
         <div className="p-3">
           <BoardStatus state={history[current]} />
           <Board
+            state={history[current]}
             className="m-auto mt-5"
-            squares={squares}
-            availableSquares={availableSquares}
             onSetStone={setStone}
           />
           <Button
@@ -42,7 +40,10 @@ function App() {
                 i
               ) => {
                 return (
-                  <div className={`${i === current ? "bg-yellow-300" : ""}`}>
+                  <div
+                    key={i}
+                    className={`${i === current ? "bg-yellow-300" : ""}`}
+                  >
                     <Button
                       className={`hover:bg-black-alpha-2 active:bg-black-alpha-3 mt-1 flex w-[12rem] items-center accent-orange-800/25`}
                       onClick={() => changeCurrent(i)}
@@ -51,7 +52,7 @@ function App() {
                         className="h-5 w-5"
                         type={i === 0 ? EMPTY : player.stone}
                       ></Stone>
-                      <p className="ml-1">
+                      <p className={`ml-1`}>
                         {i === 0
                           ? "初期状態"
                           : `${i}手目: ${COLUMNS[placedColumn]}${LINES[placedLine]}`}

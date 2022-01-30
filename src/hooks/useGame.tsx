@@ -38,7 +38,7 @@ const initBoard = (): BoardState => {
     nextPlayer: initialPlayer,
     isEnd: false,
     availableSquares: getAvailablePlaces(initialSquares, initialPlayer.stone),
-    lastPlacedStone: { line: 0, column: 0, player: CPU },
+    lastPlacedStone: { line: -1, column: -1, player: CPU },
   };
 };
 

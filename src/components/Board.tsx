@@ -1,12 +1,16 @@
-import { COLUMNS, LINES, Squares } from "../utils/game";
+import { BoardState } from "../hooks/useGame";
+import { COLUMNS, LINES } from "../utils/game";
 import { Square } from "./Square";
 
 export const Board: React.VFC<{
-  squares: Squares;
-  availableSquares: { line: number; column: number }[];
+  state: BoardState;
   className?: string;
   onSetStone: (line: number, column: number) => void;
-}> = ({ squares, className, onSetStone, availableSquares }) => {
+}> = ({
+  state: { squares, availableSquares, lastPlacedStone },
+  className,
+  onSetStone,
+}) => {
   return (
     <div className={`w-fit ${className}`}>
       <div className="flex">
@@ -14,7 +18,7 @@ export const Board: React.VFC<{
           return (
             <div
               key={line}
-              className="flex h-10 w-10 items-center justify-center text-xl font-bold"
+              className="flex h-12 w-12 items-center justify-center text-xl font-bold"
             >
               {line === 0 ? "" : COLUMNS[line - 1]}
             </div>
@@ -24,7 +28,7 @@ export const Board: React.VFC<{
       {[...new Array(8)].map((_, line) => {
         return (
           <div key={`${line}`} className="flex">
-            <div className="flex h-10 w-10 items-center justify-center text-xl font-bold">
+            <div className="flex h-12 w-12 items-center justify-center text-xl font-bold">
               {LINES[line]}
             </div>
             {[...new Array(8)].map((_, column) => {
@@ -35,6 +39,7 @@ export const Board: React.VFC<{
                   column={column}
                   square={squares[line][column]}
                   availableSquares={availableSquares}
+                  lastPlacedStone={lastPlacedStone}
                   onSetStone={onSetStone}
                 />
               );
