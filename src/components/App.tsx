@@ -45,7 +45,7 @@ function App() {
                     className={`${i === current ? "bg-yellow-300" : ""}`}
                   >
                     <Button
-                      className={`hover:bg-black-alpha-2 active:bg-black-alpha-3 mt-1 flex w-[12rem] items-center accent-orange-800/25`}
+                      className={`hover:bg-black-alpha-1 active:bg-black-alpha-2 mt-1 flex w-[12rem] items-center accent-orange-800/25`}
                       onClick={() => changeCurrent(i)}
                     >
                       <Stone
