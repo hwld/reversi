@@ -17,7 +17,7 @@ export type BoardState = {
   // 次のプレイヤーが配置可能な場所
   availableSquares: { line: number; column: number }[];
   // どの位置に石が置かれてこの盤面になったか
-  lastPlacedPosition: { line: number; column: number };
+  lastPlacedStone: { line: number; column: number; player: Player };
 } & ({ isEnd: true; winner: Player | null } | { isEnd: false });
 
 type GameState = {
@@ -38,7 +38,7 @@ const initBoard = (): BoardState => {
     nextPlayer: initialPlayer,
     isEnd: false,
     availableSquares: getAvailablePlaces(initialSquares, initialPlayer.stone),
-    lastPlacedPosition: { line: 0, column: 0 },
+    lastPlacedStone: { line: 0, column: 0, player: CPU },
   };
 };
 
@@ -99,38 +99,45 @@ const gameReducer: Reducer<GameState, GameAction> = (state, action) => {
         calcNextPlayer(player).stone
       );
 
-      const nextBoardState: BoardState = {
+      const newBoardState: BoardState = {
         squares: resultSquares,
         nextPlayer: calcNextPlayer(player),
         availableSquares: nextAvailableSquares,
         isEnd: false,
-        lastPlacedPosition: { line, column },
+        lastPlacedStone: { line, column, player },
       };
 
       // 次のプレイヤーの石が置く場所がなければゲームを終了させる
       if (nextAvailableSquares.length === 0) {
         // 今のプレイヤーも置く場所がなければゲーム終了
-        if (getAvailablePlaces(resultSquares, player.stone).length === 0) {
-          const newBoardState: BoardState = {
-            ...nextBoardState,
-            isEnd: true,
-            winner,
-          };
-
+        const available = getAvailablePlaces(resultSquares, player.stone);
+        if (available.length === 0) {
           return {
             history: [
               ...state.history.filter((_, i) => i <= current),
-              newBoardState,
+              { ...newBoardState, isEnd: true, winner },
             ],
             current: current + 1,
           };
         }
+
+        return {
+          history: [
+            ...state.history.filter((_, i) => i <= current),
+            {
+              ...newBoardState,
+              availableSquares: available,
+              nextPlayer: player,
+            },
+          ],
+          current: current + 1,
+        };
       }
 
       return {
         history: [
           ...state.history.filter((_, i) => i <= current),
-          nextBoardState,
+          newBoardState,
         ],
         current: current + 1,
       };
