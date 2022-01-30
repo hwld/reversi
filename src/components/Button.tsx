@@ -7,7 +7,7 @@ export const Button: React.VFC<ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => {
   return (
     <button
-      className={`block w-[100px] border-2 border-stone-700 py-1 text-lg font-bold  text-stone-900   duration-200
+      className={`block min-w-[100px] border-2 border-stone-700 py-1 px-3 text-lg font-bold  text-stone-900   duration-200
                 hover:bg-yellow-300 active:bg-yellow-400 ${className}`}
       {...props}
     >

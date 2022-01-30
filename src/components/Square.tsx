@@ -7,15 +7,15 @@ export const Square: React.VFC<{
   line: number;
   column: number;
   availableSquares: { line: number; column: number }[];
-  onPutStone: (line: number, column: number) => void;
-}> = ({ className, square, line, column, availableSquares, onPutStone }) => {
+  onSetStone: (line: number, column: number) => void;
+}> = ({ className, square, line, column, availableSquares, onSetStone }) => {
   const canPlace = !!availableSquares.find(
     (o) => o.line === line && o.column === column
   );
 
   const handleClick = () => {
     if (canPlace) {
-      onPutStone(line, column);
+      onSetStone(line, column);
     }
   };
 

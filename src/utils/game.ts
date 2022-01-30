@@ -4,14 +4,15 @@ export const BLACK = "black";
 export const WHITE = "white";
 type Black = typeof BLACK;
 type White = typeof WHITE;
-type Stone = Black | White;
+export type Stone = Black | White;
 
 export const EMPTY = "empty";
 export type Empty = typeof EMPTY;
 export type SquareState = Stone | Empty;
+export type Squares = SquareState[][];
 
-const COLUMNS = ["A", "B", "C", "D", "E", "F", "G"] as const;
-const LINES = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
+export const COLUMNS = ["A", "B", "C", "D", "E", "F", "G", "H"] as const;
+export const LINES = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 type Column = typeof COLUMNS[number];
 type Line = typeof LINES[number];
 type Position = `${Column}${Line}`;
@@ -37,7 +38,7 @@ export const reverse = (stone: Stone): Stone => {
   }
 };
 
-export const changePlayer = (player: Player): Player => {
+export const calcNextPlayer = (player: Player): Player => {
   if (player.stone === YOU.stone) {
     return CPU;
   } else if (player.stone === CPU.stone) {
@@ -47,8 +48,8 @@ export const changePlayer = (player: Player): Player => {
   }
 };
 
-export const initSquares = (): SquareState[][] => {
-  const squares: SquareState[][] = [...new Array(8)].map((_) =>
+export const initSquares = (): Squares => {
+  const squares: Squares = [...new Array(8)].map((_) =>
     [...new Array(8)].map(() => EMPTY)
   );
   squares[3][3] = squares[4][4] = WHITE;
@@ -57,7 +58,7 @@ export const initSquares = (): SquareState[][] => {
 };
 
 const canSandwich = (
-  squares: SquareState[][],
+  squares: Squares,
   line: number,
   column: number,
   stone: Stone,
@@ -100,7 +101,7 @@ const canSandwich = (
 
 // 石を置けるか
 const canPlace = (
-  squares: SquareState[][],
+  squares: Squares,
   line: number,
   column: number,
   stone: Stone
@@ -114,7 +115,7 @@ const canPlace = (
 // Squareにidもたせたほうがわかりやすい？
 // TODO: いろんな関数にplayer渡してるけど、石の種類にしたほうが意図が明確だと思う。
 export const getAvailablePlaces = (
-  squares: SquareState[][],
+  squares: Squares,
   stone: Stone
 ): { line: number; column: number }[] => {
   const places = [];
@@ -131,9 +132,9 @@ export const getAvailablePlaces = (
 
 // 新たに石が置かれたときに、結果となる盤面を返す
 export const getTurnedOver = (
-  squares: SquareState[][],
+  squares: Squares,
   newStone: { line: number; column: number; stone: Stone }
-): SquareState[][] => {
+): Squares => {
   const { line, column, stone } = newStone;
 
   // 裏返す石
@@ -160,7 +161,7 @@ export const getTurnedOver = (
 
 // 一つの方向にひっくり返した結果を返す
 const getSquareToTurnOverInOneDir = (
-  squares: SquareState[][],
+  squares: Squares,
   newStone: { line: number; column: number; stone: Stone },
   dir: Direction
 ): { line: number; column: number }[] => {
