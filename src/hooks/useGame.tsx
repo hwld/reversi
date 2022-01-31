@@ -3,7 +3,7 @@ import {
   calcNextPlayer,
   CPU,
   getAvailablePlaces,
-  getTurnedOver,
+  placeStone,
   initSquares,
   Player,
   Squares,
@@ -49,25 +49,10 @@ const gameReducer: Reducer<GameState, GameAction> = (state, action) => {
       const current = state.current;
       const { line, column } = action.value;
 
-      // ひっくり返したあとに石を置く実装になっているが、
-      // これは内部で"あるの場所"に石をおいた場合に相手の石を挟めるかどうかの判定で
-      // "あるの場所"に石が置かれていないことを想定しているため。
-      //TODO: あとでどうにかしたい。
-      const turned = getTurnedOver(squares, {
+      const resultSquares = placeStone(squares, {
         line,
         column,
         stone: player.stone,
-      });
-      const resultSquares = turned.map((ss, index) => {
-        if (index === line) {
-          return ss.map((s, index2) => {
-            if (index2 === column) {
-              return player.stone;
-            }
-            return s;
-          });
-        }
-        return ss;
       });
 
       // それぞれの石の数を数える
@@ -107,7 +92,7 @@ const gameReducer: Reducer<GameState, GameAction> = (state, action) => {
         lastPlacedStone: { line, column, player },
       };
 
-      // 次のプレイヤーの石が置く場所がなければゲームを終了させる
+      // 次のプレイヤーの石が置く場所がなければプレイヤーを切り替えない
       if (nextAvailableSquares.length === 0) {
         // 今のプレイヤーも置く場所がなければゲーム終了
         const available = getAvailablePlaces(resultSquares, player.stone);

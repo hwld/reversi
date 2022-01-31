@@ -11,43 +11,43 @@ export const direction = [
 
 export type Direction = typeof direction[number];
 
-export const getDirectionValue = (
+export const getVector = (
   dir: Direction
-): { lineDir: number; columnDir: number } => {
-  let lineDir, columnDir;
+): { lineVec: number; columnVec: number } => {
+  let lineVec, columnVec;
   switch (dir) {
     case "up": {
-      [lineDir, columnDir] = [-1, 0];
+      [lineVec, columnVec] = [-1, 0];
       break;
     }
     case "rightUp": {
-      [lineDir, columnDir] = [-1, 1];
+      [lineVec, columnVec] = [-1, 1];
       break;
     }
     case "right": {
-      [lineDir, columnDir] = [0, 1];
+      [lineVec, columnVec] = [0, 1];
       break;
     }
     case "rightDown": {
-      [lineDir, columnDir] = [1, 1];
+      [lineVec, columnVec] = [1, 1];
       break;
     }
     case "down": {
-      [lineDir, columnDir] = [1, 0];
+      [lineVec, columnVec] = [1, 0];
       break;
     }
     case "leftDown": {
-      [lineDir, columnDir] = [1, -1];
+      [lineVec, columnVec] = [1, -1];
       break;
     }
     case "left": {
-      [lineDir, columnDir] = [0, -1];
+      [lineVec, columnVec] = [0, -1];
       break;
     }
     case "leftUp": {
-      [lineDir, columnDir] = [-1, -1];
+      [lineVec, columnVec] = [-1, -1];
       break;
     }
   }
-  return { lineDir, columnDir };
+  return { lineVec, columnVec };
 };

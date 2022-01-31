@@ -42,7 +42,7 @@ export const Square: React.VFC<{
         ${className}`}
       onClick={handleClick}
     >
-      <Stone className={`h-[35px] w-[35px]`} type={square} />
+      <Stone className={`h-10 w-10`} type={square} />
     </div>
   );
 };

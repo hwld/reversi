@@ -1,4 +1,4 @@
-import { direction, Direction, getDirectionValue } from "./direction";
+import { direction, Direction, getVector } from "./direction";
 
 export const BLACK = "black";
 export const WHITE = "white";
@@ -13,18 +13,8 @@ export type Squares = SquareState[][];
 
 export const COLUMNS = ["A", "B", "C", "D", "E", "F", "G", "H"] as const;
 export const LINES = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
-type Column = typeof COLUMNS[number];
-type Line = typeof LINES[number];
-type Position = `${Column}${Line}`;
 
-const asPosition = (column: Column, line: Line): Position => {
-  return `${column}${line}`;
-};
-const asColumnAndLine = (
-  position: Position
-): { column: Column; line: Line } => {
-  return { column: position[0] as Column, line: position[1] as Line };
-};
+type Position = { line: number; column: number };
 
 export type Player = { stone: Stone };
 export const YOU: Player = { stone: BLACK } as const;
@@ -57,27 +47,31 @@ export const initSquares = (): Squares => {
   return squares;
 };
 
+// lineとcolumnの位置に石がないことが前提
+//
 const canSandwich = (
   squares: Squares,
-  line: number,
-  column: number,
+  pos: Position,
   stone: Stone,
   dir: Direction
 ) => {
-  const { lineDir, columnDir } = getDirectionValue(dir);
+  const { line, column } = pos;
+  const { lineVec, columnVec } = getVector(dir);
 
-  if (!isOnBoard(line, column)) {
+  // 盤外が指定されたらfalseを返す
+  if (!isOnBoard(pos)) {
     return false;
   }
+
   // playerまたはemptyでなければ
   if (squares[line][column] !== EMPTY) {
     return false;
   }
 
-  let tmpLine = line + lineDir;
-  let tmpColumn = column + columnDir;
+  let tmpLine = line + lineVec;
+  let tmpColumn = column + columnVec;
   //盤外
-  if (!isOnBoard(tmpLine, tmpColumn)) {
+  if (!isOnBoard({ line: tmpLine, column: tmpColumn })) {
     return false;
   }
   //隣が渡された石の裏ではない
@@ -86,15 +80,15 @@ const canSandwich = (
   }
 
   // 盤上にある限り
-  while (isOnBoard(tmpLine, tmpColumn)) {
+  while (isOnBoard({ line: tmpLine, column: tmpColumn })) {
     // 渡された石が見つかったら配置可能
     if (squares[tmpLine][tmpColumn] === stone) {
       return true;
     } else if (squares[tmpLine][tmpColumn] === EMPTY) {
       return false;
     }
-    tmpLine += lineDir;
-    tmpColumn += columnDir;
+    tmpLine += lineVec;
+    tmpColumn += columnVec;
   }
   return false;
 };
@@ -102,13 +96,12 @@ const canSandwich = (
 // 石を置けるか
 const canPlace = (
   squares: Squares,
-  line: number,
-  column: number,
+  { line, column }: Position,
   stone: Stone
 ) => {
   // いずれかの方向に挟むことができれば置ける
   return direction.some((dir) => {
-    return canSandwich(squares, line, column, stone, dir);
+    return canSandwich(squares, { line, column }, stone, dir);
   });
 };
 
@@ -117,11 +110,11 @@ const canPlace = (
 export const getAvailablePlaces = (
   squares: Squares,
   stone: Stone
-): { line: number; column: number }[] => {
+): Position[] => {
   const places = [];
   for (let line = 0; line < 8; line++) {
     for (let column = 0; column < 8; column++) {
-      if (canPlace(squares, line, column, stone)) {
+      if (canPlace(squares, { line, column }, stone)) {
         places.push({ line, column });
       }
     }
@@ -131,23 +124,23 @@ export const getAvailablePlaces = (
 };
 
 // 新たに石が置かれたときに、結果となる盤面を返す
-export const getTurnedOver = (
+export const placeStone = (
   squares: Squares,
   newStone: { line: number; column: number; stone: Stone }
 ): Squares => {
   const { line, column, stone } = newStone;
 
   // 裏返す石
-  const target: { line: number; column: number }[] = [];
+  const target: Position[] = [];
   direction.forEach((dir) => {
     target.push(
       ...getSquareToTurnOverInOneDir(squares, { line, column, stone }, dir)
     );
   });
 
-  return squares.map((ss, line) => {
+  // 対象となる石を反転させる
+  const turned = squares.map((ss, line) => {
     return ss.map((s, column) => {
-      // 対象となる石を反転させる
       if (
         s !== EMPTY &&
         target.find((t) => t.line === line && t.column === column)
@@ -157,35 +150,51 @@ export const getTurnedOver = (
       return s;
     });
   });
+
+  // 石を配置する
+  const placed = turned.map((ss, index) => {
+    if (index === line) {
+      return ss.map((s, index2) => {
+        if (index2 === column) {
+          return stone;
+        }
+        return s;
+      });
+    }
+    return ss;
+  });
+
+  return placed;
 };
 
 // 一つの方向にひっくり返した結果を返す
+// 指定された箇所に置くことが出来なければ空の配列を返す
 const getSquareToTurnOverInOneDir = (
   squares: Squares,
   newStone: { line: number; column: number; stone: Stone },
   dir: Direction
-): { line: number; column: number }[] => {
+): Position[] => {
   const { line, column, stone } = newStone;
 
   // 指定された方向に挟めなければ何もしない
-  if (!canSandwich(squares, line, column, stone, dir)) {
+  if (!canSandwich(squares, { line, column }, stone, dir)) {
     return [];
   }
 
-  const targets: { line: number; column: number }[] = [];
-  const { lineDir, columnDir } = getDirectionValue(dir);
-  let tmpLine = line + lineDir;
-  let tmpColumn = column + columnDir;
-  // TODO: getDirectionValueではなく、getVectorにして、距離を渡すだけにする。
+  const { lineVec, columnVec } = getVector(dir);
+  let tmpLine = line + lineVec;
+  let tmpColumn = column + columnVec;
+  const targets: Position[] = [];
+  // 挟めることが前提
   while (squares[tmpLine][tmpColumn] !== stone) {
     targets.push({ line: tmpLine, column: tmpColumn });
-    tmpLine += lineDir;
-    tmpColumn += columnDir;
+    tmpLine += lineVec;
+    tmpColumn += columnVec;
   }
 
   return targets;
 };
 
-export const isOnBoard = (line: number, column: number) => {
+export const isOnBoard = ({ line, column }: Position) => {
   return line >= 0 && line < 8 && column >= 0 && column < 8;
 };
